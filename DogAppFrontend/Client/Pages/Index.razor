@@ -1,0 +1,56 @@
+﻿@page "/"
+@inject HttpClient Http
+@inject DogService DogService
+
+<PageTitle>Dog App</PageTitle>
+
+<h1>Random Dog</h1>
+
+<p>This retrieves random dogs from the server</p>
+
+@if (_isLoading)
+{
+	<p><em>Loading...</em></p>
+}
+else if (_error != null)
+{
+	<p>@_error</p>
+}
+else
+{
+	<p>Breed: @_dog?.Breed</p>
+	<img src="@_dog?.ImageUrl" @onclick="RetrieveRandomDog" />
+}
+
+@code {
+	private Dog? _dog;
+	private bool _isLoading = true;
+	private string? _error;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await RetrieveRandomDog();
+	}
+
+	private async Task RetrieveRandomDog()
+	{
+		try
+		{
+			_isLoading = true;
+			_dog = await DogService.GetRandomDog();
+			_error = null;
+		}
+		catch (HttpRequestException)
+		{
+			_error = "We're having trouble fetching your dog right now. Please check your connection and try again.";
+		}
+		catch (Exception)
+		{
+			_error = "An unexpected error occurred. Please try again later.";
+		}
+		finally
+		{
+			_isLoading = false;
+		}
+	}
+}
